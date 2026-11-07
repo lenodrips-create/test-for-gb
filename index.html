@@ -291,6 +291,32 @@
   .fs-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
   .fs-btn:active { transform: scale(.97); }
 
+  /* like / dislike */
+  .player-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .vote-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 14px; border: 1px solid #222838; border-radius: 10px;
+    background: #10141e; color: #c6cddb;
+    font: 800 14px 'Montserrat', sans-serif; cursor: pointer;
+    transition: transform .12s, border-color .15s, color .15s, background .15s;
+  }
+  .vote-btn svg { width: 18px; height: 18px; fill: currentColor; transition: transform .2s; }
+  .vote-btn:hover { transform: translateY(-2px); }
+  .vote-btn.like:hover { color: #38e1e8; border-color: #38e1e8; }
+  .vote-btn.dislike:hover { color: #ff6b81; border-color: #ff6b81; }
+  .vote-btn.on.like { color: #06230a; background: #7cf24b; border-color: #7cf24b; }
+  .vote-btn.on.dislike { color: #2a0c12; background: #ff6b81; border-color: #ff6b81; }
+  /* tiny pop animation on click */
+  .vote-btn.pop svg { animation: votePop .4s cubic-bezier(.34,1.56,.64,1); }
+  .vote-btn.like.pop svg  { transform-origin: 50% 70%; }
+  @keyframes votePop {
+    0%   { transform: scale(1) rotate(0); }
+    35%  { transform: scale(1.45) rotate(-12deg); }
+    70%  { transform: scale(.9) rotate(6deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+  .vote-count { min-width: 30px; text-align: left; }
+
   /* bottom strip of more games */
   .rail-bottom { max-width: 1200px; width: 100%; margin: 0 auto; padding: 2px 20px 30px; }
   .rail-bottom h4 { font-size: 13px; color: #8a93a6; margin: 12px 2px; letter-spacing: .6px; }
@@ -465,6 +491,16 @@
             <div class="player-by">SERAPHX</div>
           </div>
         </div>
+        <div class="player-actions">
+          <button class="vote-btn like" id="likeBtn" aria-label="Like">
+            <svg viewBox="0 0 24 24"><path d="M2 21h4V9H2v12zm20-11a2 2 0 0 0-2-2h-6.31l.95-4.57.03-.32a1.5 1.5 0 0 0-.44-1.06L13.17 1 6.59 7.59A2 2 0 0 0 6 9v10a2 2 0 0 0 2 2h9a2 2 0 0 0 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1z"/></svg>
+            <span class="vote-count" id="likeCount">0</span>
+          </button>
+          <button class="vote-btn dislike" id="dislikeBtn" aria-label="Dislike">
+            <svg viewBox="0 0 24 24"><path d="M22 3h-4v12h4V3zM2 14a2 2 0 0 0 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L10.83 23l6.59-6.59A2 2 0 0 0 18 15V5a2 2 0 0 0-2-2H7a2 2 0 0 0-1.84 1.22L2.14 11.27c-.09.23-.14.47-.14.73v2z"/></svg>
+            <span class="vote-count" id="dislikeCount">0</span>
+          </button>
+        </div>
         <button class="fs-btn" id="fsBtn" title="Open game fullscreen in a new tab">
           <svg viewBox="0 0 24 24"><path d="M4 9V4h5V2H2v7h2zm16 0V4h-5V2h7v7h-2zM4 15v5h5v2H2v-7h2zm16 0v5h-5v2h7v-7h-2z"/></svg>
           Fullscreen
@@ -636,8 +672,42 @@
     frame.style.backgroundImage = `url("${g.img}")`;
     playerIc.src = g.img; playerIc.alt = g.title;
     playerName.textContent = g.title;
+    currentGameId = g.id;
+    renderVotes(g.id);
     document.querySelectorAll('.rail-tile').forEach(t => t.classList.toggle('active', t.dataset.id === g.id));
   }
+
+  // ---- Like / dislike (counts persist per game in this browser) ----
+  const likeBtn = document.getElementById('likeBtn');
+  const dislikeBtn = document.getElementById('dislikeBtn');
+  const likeCount = document.getElementById('likeCount');
+  const dislikeCount = document.getElementById('dislikeCount');
+  let currentGameId = '';
+
+  const fmt = n => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : '' + n;
+  function baseCounts(id) {
+    let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+    return { likes: 1200 + (h % 7800), dislikes: 150 + ((h >> 3) % 1400) };
+  }
+  const getVote = id => { try { return localStorage.getItem('vote:' + id) || ''; } catch (e) { return ''; } };
+  const setVote = (id, v) => { try { v ? localStorage.setItem('vote:' + id, v) : localStorage.removeItem('vote:' + id); } catch (e) {} };
+
+  function renderVotes(id) {
+    const b = baseCounts(id), v = getVote(id);
+    likeCount.textContent = fmt(b.likes + (v === 'like' ? 1 : 0));
+    dislikeCount.textContent = fmt(b.dislikes + (v === 'dislike' ? 1 : 0));
+    likeBtn.classList.toggle('on', v === 'like');
+    dislikeBtn.classList.toggle('on', v === 'dislike');
+  }
+  function vote(kind) {
+    const cur = getVote(currentGameId);
+    setVote(currentGameId, cur === kind ? '' : kind);
+    renderVotes(currentGameId);
+    const btn = kind === 'like' ? likeBtn : dislikeBtn;
+    btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
+  }
+  likeBtn.addEventListener('click', () => vote('like'));
+  dislikeBtn.addEventListener('click', () => vote('dislike'));
 
   // Build the surrounding game rails (sides + bottom strip)
   const railTile = g => `<div class="rail-tile" data-id="${g.id}" title="${g.title}"><img src="${g.img}" alt="${g.title}"></div>`;
