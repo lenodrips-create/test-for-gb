@@ -533,7 +533,7 @@
     const g = GAMES.find(x => x.title === t.title);
     if (g) openLauncher(g);
   });
-  document.getElementById('playBtn').addEventListener('click', () => { window.location.href = launchPath; });
+  document.getElementById('playBtn').addEventListener('click', () => { window.open(launchPath, '_blank', 'noopener'); });
   document.getElementById('launcherClose').addEventListener('click', closeLauncher);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLauncher(); });
 
