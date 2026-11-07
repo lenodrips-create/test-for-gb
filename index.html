@@ -16,19 +16,20 @@
 
   /* ---------- Top bar ---------- */
   .topbar {
+    --nav-icon: clamp(42px, 4vw, 78px); /* icon buttons scale with the screen */
     position: relative;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: clamp(10px, 1.3vw, 24px);
     max-width: none;
     margin: 0 auto;
-    padding: 22px 40px; /* full width: logo + search left, buttons right */
+    padding: clamp(14px, 1.9vw, 36px) clamp(16px, 3vw, 64px); /* grows with screen size */
     background: #000; /* keep the nav bar solid black over the background */
   }
   .logo {
     order: 0;
-    height: 56px;
-    width: 56px;
+    height: clamp(44px, 4.6vw, 92px);
+    width: clamp(44px, 4.6vw, 92px);
     object-fit: cover;
     border-radius: 12px;
     display: block;
@@ -38,8 +39,10 @@
   .topbar .search {
     order: 1;
     margin: 0 auto 0 0;
-    flex: 0 1 420px;
+    flex: 0 1 clamp(240px, 30vw, 560px);
     min-width: 0;
+    padding: clamp(9px, 0.95vw, 18px) clamp(14px, 1.3vw, 26px);
+    font-size: clamp(14px, 1vw, 20px);
   }
   /* the icon buttons now flow on the right side of the bar */
   .topbar .account-btn { order: 2; }
@@ -51,11 +54,17 @@
   .topbar .ai-btn {
     position: static; left: auto; right: auto; bottom: auto;
     flex: none;
+    width: var(--nav-icon); height: var(--nav-icon);
   }
   .topbar .menu-btn {
     position: relative; left: auto; right: auto; bottom: auto;
     flex: none;
+    width: var(--nav-icon); height: var(--nav-icon);
   }
+  /* icon glyphs scale with their (responsive) buttons */
+  .topbar .account-btn svg,
+  .topbar .mail-btn svg,
+  .topbar .ai-btn svg { width: 92%; height: 92%; }
   @media (max-width: 600px) {
     .topbar { padding: 16px 16px; gap: 8px; }
     .logo { height: 44px; width: 44px; }
@@ -98,19 +107,19 @@
   .menu-btn:hover { background: #2a2a2a; transform: scale(1.06); }
   .menu-btn span {
     position: absolute;
-    left: 12px;
-    width: 24px;
-    height: 3px;
+    left: 25%;
+    width: 50%;
+    height: 6.25%;
     border-radius: 3px;
     background: #fff;
     transition: transform .35s cubic-bezier(.7,-0.4,.3,1.4), opacity .2s, top .35s;
   }
-  .menu-btn span:nth-child(1) { top: 15px; }
-  .menu-btn span:nth-child(2) { top: 22.5px; }
-  .menu-btn span:nth-child(3) { top: 30px; }
-  .menu-btn.open span:nth-child(1) { top: 22.5px; transform: rotate(45deg); }
-  .menu-btn.open span:nth-child(2) { opacity: 0; transform: translateX(-12px); }
-  .menu-btn.open span:nth-child(3) { top: 22.5px; transform: rotate(-45deg); }
+  .menu-btn span:nth-child(1) { top: 31.25%; }
+  .menu-btn span:nth-child(2) { top: 46.875%; }
+  .menu-btn span:nth-child(3) { top: 62.5%; }
+  .menu-btn.open span:nth-child(1) { top: 46.875%; transform: rotate(45deg); }
+  .menu-btn.open span:nth-child(2) { opacity: 0; transform: translateX(-50%); }
+  .menu-btn.open span:nth-child(3) { top: 46.875%; transform: rotate(-45deg); }
 
   /* ---------- Slide-out side menu ---------- */
   .side-menu {
