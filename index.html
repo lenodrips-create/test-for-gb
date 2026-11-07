@@ -19,16 +19,47 @@
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 14px;
     max-width: none;
     margin: 0 auto;
-    padding: 70px 44px 0; /* space above; full width so buttons sit near the edges */
+    padding: 22px 40px; /* full width: logo + search left, buttons right */
   }
   .logo {
-    height: 80px;
-    width: auto;
+    order: 0;
+    height: 56px;
+    width: 56px;
+    object-fit: cover;
+    border-radius: 12px;
     display: block;
-    filter: drop-shadow(0 0 14px rgba(255,255,255,.25));
+    filter: drop-shadow(0 0 12px rgba(255,255,255,.22));
+  }
+  /* search sits right next to the logo, pushing the buttons to the far right */
+  .topbar .search {
+    order: 1;
+    margin: 0 auto 0 0;
+    flex: 0 1 420px;
+    min-width: 0;
+  }
+  /* the icon buttons now flow on the right side of the bar */
+  .topbar .account-btn { order: 2; }
+  .topbar .mail-btn    { order: 3; }
+  .topbar .ai-btn      { order: 4; }
+  .topbar .menu-btn    { order: 5; }
+  .topbar .account-btn,
+  .topbar .mail-btn,
+  .topbar .ai-btn {
+    position: static; left: auto; right: auto; bottom: auto;
+    flex: none;
+  }
+  .topbar .menu-btn {
+    position: relative; left: auto; right: auto; bottom: auto;
+    flex: none;
+  }
+  @media (max-width: 600px) {
+    .topbar { padding: 16px 16px; gap: 8px; }
+    .logo { height: 44px; width: 44px; }
+    .topbar .search { flex: 1 1 90px; }
+    .ai-btn { display: none; }
   }
 
   /* ---------- Account button (top left) ---------- */
@@ -412,7 +443,8 @@
       <path d="M42.5 36.5 L29.4 23.6"/>
     </svg>
   </a>
-  <img class="logo" src="images/logo-seraphx.png" alt="SERAPHX">
+  <img class="logo" src="images/seraph-logo.png" alt="SERAPH">
+  <input class="search" id="search" type="text" placeholder="Search..." autocomplete="off">
   <a class="ai-btn" href="ai.html" aria-label="SERAPHX AI">
     <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
       <!-- antenna -->
@@ -437,7 +469,6 @@
 </header>
 
 <main>
-  <input class="search" id="search" type="text" placeholder="Search..." autocomplete="off">
   <div class="grid" id="all"></div>
   <p class="empty" id="empty">No games found.</p>
 </main>
