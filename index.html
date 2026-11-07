@@ -548,21 +548,9 @@
                        <img src="${g.img}" alt="${g.title}">${g.preview ? `<video src="${g.preview}" muted playsinline preload="none"></video>` : ''}</a>`;
 
   const all = document.getElementById('all');
-  // Dense, Poki-style mosaic: tile the library (reshuffled each pass) to fill the screen,
-  // sprinkling occasional larger feature tiles. Every tile still opens its own game.
-  const MOSAIC_TILES = 168;
-  function buildMosaic() {
-    let pool = [];
-    const refill = () => { pool = GAMES.slice().sort(() => Math.random() - 0.5); };
-    const out = [];
-    for (let i = 0; i < MOSAIC_TILES; i++) {
-      if (!pool.length) refill();
-      const g = pool.pop();
-      out.push(tile(g, i % 11 === 4)); // ~1 in 11 is a big feature tile
-    }
-    all.innerHTML = out.join('');
-  }
-  buildMosaic();
+  // One tile per game, laid out in a single full-width row.
+  all.style.gridTemplateColumns = `repeat(${GAMES.length}, 1fr)`;
+  all.innerHTML = GAMES.map(g => tile(g)).join('');
 
   // Search
   document.getElementById('search').addEventListener('input', e => {
