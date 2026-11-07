@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SERAPHX</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #000000;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 70px 36px 0; /* space above */
+  }
+  .logo {
+    height: 80px;
+    width: auto;
+    display: block;
+    filter: drop-shadow(0 0 14px rgba(255,255,255,.25));
+  }
+
+  /* ---------- Account button (top left) ---------- */
+  .account-btn {
+    position: absolute;
+    left: 36px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    border-radius: 50%;
+    z-index: 30;
+    transition: transform .2s, filter .2s;
+  }
+  .account-btn svg { width: 44px; height: 44px; display: block; }
+  .account-btn:hover { transform: scale(1.08); filter: drop-shadow(0 0 10px rgba(255,255,255,.35)); }
+
+  /* ---------- Animated 3-line menu button ---------- */
+  .menu-btn {
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: #1a1a1a;
+    border-radius: 12px;
+    cursor: pointer;
+    position: absolute;
+    right: 36px;
+    bottom: 16px;
+    z-index: 30;
+    transition: background .25s, transform .2s;
+  }
+  .menu-btn:hover { background: #2a2a2a; transform: scale(1.06); }
+  .menu-btn span {
+    position: absolute;
+    left: 12px;
+    width: 24px;
+    height: 3px;
+    border-radius: 3px;
+    background: #fff;
+    transition: transform .35s cubic-bezier(.7,-0.4,.3,1.4), opacity .2s, top .35s;
+  }
+  .menu-btn span:nth-child(1) { top: 15px; }
+  .menu-btn span:nth-child(2) { top: 22.5px; }
+  .menu-btn span:nth-child(3) { top: 30px; }
+  .menu-btn.open span:nth-child(1) { top: 22.5px; transform: rotate(45deg); }
+  .menu-btn.open span:nth-child(2) { opacity: 0; transform: translateX(-12px); }
+  .menu-btn.open span:nth-child(3) { top: 22.5px; transform: rotate(-45deg); }
+
+  /* ---------- Slide-out side menu ---------- */
+  .side-menu {
+    position: fixed;
+    top: 0; right: 0;
+    width: 280px;
+    height: 100vh;
+    background: #111;
+    border-left: 1px solid #262626;
+    color: #fff;
+    padding: 150px 32px 32px;
+    transform: translateX(100%);
+    transition: transform .45s cubic-bezier(.77,0,.18,1);
+    z-index: 20;
+  }
+  .side-menu.open { transform: translateX(0); }
+  .side-menu a {
+    display: block;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 22px;
+    padding: 12px 0;
+    opacity: 0;
+    transform: translateX(24px);
+    transition: opacity .3s, transform .3s, color .2s;
+  }
+  .side-menu a:hover { color: #9a9a9a; }
+  .side-menu.open a { opacity: 1; transform: translateX(0); }
+  .side-menu.open a:nth-child(1) { transition-delay: .15s; }
+  .side-menu.open a:nth-child(2) { transition-delay: .22s; }
+  .side-menu.open a:nth-child(3) { transition-delay: .29s; }
+  .side-menu.open a:nth-child(4) { transition-delay: .36s; }
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.6);
+    opacity: 0; pointer-events: none;
+    transition: opacity .4s;
+    z-index: 10;
+  }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+
+  /* ---------- Content ---------- */
+  main { max-width: 1100px; margin: 0 auto; padding: 80px 32px 60px; }
+  h1 { font-size: 40px; font-weight: 800; margin: 0 0 14px 12px; }
+
+  .tile {
+    position: relative;
+    display: block;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #111;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .tile img { width: 100%; height: 100%; display: block; object-fit: cover; }
+
+  /* Gameplay preview on hover (like Poki) */
+  .tile video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity .3s ease;
+    pointer-events: none;
+  }
+  .tile.previewing video { opacity: 1; }
+  .tile:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 10px 24px rgba(255,255,255,.12); }
+
+  /* Popular: small | big | big | big */
+  .popular {
+    display: grid;
+    grid-template-columns: 1fr 2fr 2fr 2fr;
+    gap: 12px;
+  }
+  .popular .tile { aspect-ratio: 1; }
+  .popular .big { grid-row: span 2; aspect-ratio: auto; height: 100%; }
+
+  .divider {
+    height: 4px;
+    margin: 40px 0 34px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, transparent, #555 20%, #fff 50%, #555 80%, transparent);
+  }
+
+  .search {
+    width: 290px;
+    padding: 12px 18px;
+    border: 2px solid #222;
+    border-radius: 12px;
+    background: #1b1b1b;
+    font: 700 15px 'Montserrat', sans-serif;
+    color: #fff;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color .2s, background .2s;
+  }
+  .search::placeholder { color: #ccc; }
+  .search:focus { border-color: #fff; background: #222; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-flow: dense;
+    gap: 14px;
+  }
+  .grid .tile { aspect-ratio: 1; border-radius: 22px; }
+  .grid .tile.feature { grid-column: span 3; grid-row: span 3; border-radius: 28px; }
+  .empty { text-align: center; color: #888; font-weight: 700; padding: 30px; display: none; }
+
+  @media (max-width: 1050px) {
+    .popular { gap: 8px; }
+    .grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .grid .tile { border-radius: 14px; }
+    .grid .tile.feature { border-radius: 18px; }
+  }
+  @media (max-width: 480px) {
+    .topbar { padding: 40px 20px 0; }
+    .logo { height: 56px; width: auto; }
+    main { padding-top: 56px; }
+    .menu-btn { right: 20px; bottom: 4px; }
+    .account-btn { left: 20px; bottom: 4px; }
+  }
+
+  /* ---------- Game launch screen ---------- */
+  .launcher {
+    position: fixed; inset: 0;
+    z-index: 50;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 26px;
+    background: #000000;
+    opacity: 0; pointer-events: none;
+    transition: opacity .35s;
+  }
+  .launcher.open { opacity: 1; pointer-events: auto; }
+  .launcher-close {
+    position: absolute; top: 28px; right: 28px;
+    width: 48px; height: 48px;
+    border: none; border-radius: 12px;
+    background: #1a1a1a; color: #fff;
+    font-size: 26px; line-height: 1; cursor: pointer;
+    transition: background .2s, transform .2s;
+  }
+  .launcher-close:hover { background: #2a2a2a; transform: rotate(90deg); }
+  .launch-icon {
+    width: 170px; height: 170px;
+    border-radius: 50%;
+    object-fit: cover;
+    padding: 5px;
+    background: url(images/nebula.jpg) center / cover no-repeat, #0b0b0f;
+    box-shadow: 0 0 22px 4px rgba(255,255,255,.18), 0 0 60px 12px rgba(180,190,255,.10);
+    transform: scale(.7);
+    transition: transform .45s cubic-bezier(.34,1.56,.64,1);
+  }
+  .launch-title {
+    font-size: 30px; font-weight: 800; color: #fff;
+    text-align: center; margin-top: -6px;
+  }
+  .play-btn {
+    display: flex; align-items: center; gap: 16px;
+    margin-top: 34px;
+    padding: 9px 38px 9px 10px;
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 999px;
+    background: url(images/nebula.jpg) center / cover no-repeat, #0b0b0f;
+    color: #fff;
+    font: 800 24px 'Montserrat', sans-serif;
+    letter-spacing: -.3px;
+    text-shadow: 0 1px 8px rgba(0,0,0,.6);
+    cursor: pointer;
+    box-shadow: 0 0 18px 4px rgba(255,255,255,.18), 0 0 50px 10px rgba(180,190,255,.10);
+    transform: translateY(20px); opacity: 0;
+    transition: transform .45s .1s cubic-bezier(.34,1.56,.64,1), opacity .35s .1s, box-shadow .25s, background-position .6s;
+    animation: glow 2.6s ease-in-out infinite;
+  }
+  .play-btn .play-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(0,0,0,.45);
+    border: 1px solid rgba(255,255,255,.3);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .25s;
+  }
+  .play-btn .play-circle svg { width: 22px; height: 22px; margin-left: 4px; fill: #fff; }
+  .play-btn:hover { background-position: 30% center, 0 0; }
+  .play-btn:hover .play-circle { transform: scale(1.08); }
+  .play-btn:active { transform: scale(.97); }
+  .launcher.open .launch-icon { transform: scale(1); }
+  .launcher.open .play-btn { transform: translateY(0); opacity: 1; }
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 18px 4px rgba(255,255,255,.18), 0 0 50px 10px rgba(180,190,255,.10); }
+    50%      { box-shadow: 0 0 26px 8px rgba(255,255,255,.28), 0 0 70px 16px rgba(180,190,255,.16); }
+  }
+  @media (max-width: 600px) {
+    .launch-icon { width: 130px; height: 130px; }
+    .launch-title { font-size: 24px; }
+    .play-btn { font-size: 19px; gap: 12px; padding: 7px 28px 7px 8px; margin-top: 28px; }
+    .play-btn .play-circle { width: 44px; height: 44px; }
+    .play-btn .play-circle svg { width: 17px; height: 17px; }
+  }
+    /* ---------- Account avatar + mail button ---------- */
+  .account-btn img {
+    width: 44px; height: 44px; border-radius: 50%; object-fit: cover; display: block;
+    padding: 2px; background: url(images/nebula.jpg) center / cover;
+  }
+  .mail-btn {
+    position: absolute;
+    left: 96px;
+    bottom: 16px;
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    z-index: 30;
+    transition: transform .2s, filter .2s;
+  }
+  .mail-btn svg { width: 40px; height: 40px; display: block; }
+  .mail-btn:hover { transform: scale(1.08); filter: drop-shadow(0 0 10px rgba(255,255,255,.35)); }
+  @media (max-width: 480px) {
+    .mail-btn { left: 76px; bottom: 4px; }
+  }
+
+  /* ---------- AI robot button (left of the menu) ---------- */
+  .ai-btn {
+    position: absolute;
+    right: 96px;
+    bottom: 16px;
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    z-index: 30;
+    transition: transform .2s, filter .2s;
+  }
+  .ai-btn svg { width: 42px; height: 42px; display: block; }
+  .ai-btn:hover { transform: scale(1.08); filter: drop-shadow(0 0 10px rgba(255,255,255,.35)); }
+  @media (max-width: 480px) {
+    .ai-btn { right: 76px; bottom: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay"></div>
+<nav class="side-menu" id="sideMenu">
+  <a href="index.html">Home</a>
+  <a href="index.html#popular">Popular</a>
+  <a href="index.html#all">All Games</a>
+  <a href="contact.html">Contact</a>
+  <a href="account.html">Account</a>
+  <a href="ai.html" class="current">SERAPHX AI</a>
+</nav>
+
+<header class="topbar">
+  <a class="account-btn" href="account.html" aria-label="Account">
+    <svg viewBox="0 0 48 48" fill="none">
+      <defs><clipPath id="acctClip"><circle cx="24" cy="24" r="19"/></clipPath></defs>
+      <circle cx="24" cy="24" r="21" stroke="currentColor" stroke-width="3.5"/>
+      <circle cx="24" cy="17.5" r="7.5" fill="currentColor"/>
+      <circle cx="24" cy="45" r="16" fill="currentColor" clip-path="url(#acctClip)"/>
+    </svg>
+  </a>
+  <a class="mail-btn" href="contact.html" aria-label="Mail">
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="10" width="40" height="28" rx="4.5"/>
+      <path d="M5.5 11.5 L20.5 25.2 Q24 28.4 27.5 25.2 L42.5 11.5"/>
+      <path d="M5.5 36.5 L18.6 23.6"/>
+      <path d="M42.5 36.5 L29.4 23.6"/>
+    </svg>
+  </a>
+  <img class="logo" src="images/logo-seraphx.png" alt="SERAPHX">
+  <a class="ai-btn" href="ai.html" aria-label="SERAPHX AI">
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <!-- antenna -->
+      <circle cx="24" cy="5.5" r="3"/>
+      <path d="M24 8.5 V14"/>
+      <!-- head -->
+      <rect x="10" y="14" width="28" height="26" rx="7"/>
+      <!-- ears -->
+      <path d="M10 22 H8.5 a3 3 0 0 0 -3 3 v5 a3 3 0 0 0 3 3 H10"/>
+      <path d="M38 22 H39.5 a3 3 0 0 1 3 3 v5 a3 3 0 0 1 -3 3 H38"/>
+      <!-- left eye -->
+      <circle cx="18.5" cy="25" r="3.6" stroke="currentColor" stroke-width="3" fill="none"/>
+      <!-- right eye -->
+      <circle cx="29.5" cy="25" r="3.6" stroke="currentColor" stroke-width="3" fill="none"/>
+      <!-- mouth -->
+      <path d="M19.5 33.5 H28.5"/>
+    </svg>
+  </a>
+  <button class="menu-btn" id="menuBtn" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main>
+  <h1 id="popular">Popular:</h1>
+  <div class="popular" id="popularGrid"></div>
+
+  <div class="divider"></div>
+
+  <input class="search" id="search" type="text" placeholder="Search..." autocomplete="off">
+  <div class="grid" id="all"></div>
+  <p class="empty" id="empty">No games found.</p>
+</main>
+
+<div class="launcher" id="launcher" aria-hidden="true">
+  <button class="launcher-close" id="launcherClose" aria-label="Back">&times;</button>
+  <img class="launch-icon" id="launchIcon" src="" alt="">
+  <div class="launch-title" id="launchTitle"></div>
+  <button class="play-btn" id="playBtn">
+    <span class="play-circle"><svg viewBox="0 0 24 24"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5z"/></svg></span>
+    Play game
+  </button>
+</div>
+
+<script>
+  // Games list: swap "img" for your own banner paths and "path" for each game's page.
+  const GAMES = [
+  {
+    "id": "minecraft",
+    "title": "Minecraft",
+    "img": "images/minecraft.jpg",
+    "path": "games/eagler1.8",
+    "preview": "previews/minecraft.mp4"
+  },
+  {
+    "id": "retro",
+    "title": "Retro Bowl",
+    "img": "images/retro.jpg",
+    "path": "games/retrobowl",
+    "preview": "previews/retro.mp4"
+  },
+  {
+    "id": "truck",
+    "title": "Drive Mad",
+    "img": "images/truck.png",
+    "path": "games/drive-mad",
+    "preview": "previews/drivemad.mp4"
+  },
+  {
+    "id": "slope",
+    "title": "Slope",
+    "img": "images/slope.jpg",
+    "path": "games/slope",
+    "preview": "previews/slope.mp4"
+  },
+   {
+    "id": "crazy-cattle",
+    "title": "Crazy Cattle",
+    "img": "images/crazy-cattle.jpeg",
+    "path": "games/crazycattle-main",
+    "preview": "previews/crazy-cattle.mp4"
+  },
+  {
+    "id": "amongus",
+    "title": "Among Us",
+    "img": "images/amongus.jpg",
+    "path": "games/amongus",
+    "preview": "previews/amongus.mp4"
+  },
+  {
+    "id": "eggycar",
+    "title": "Eggy Car",
+    "img": "images/eggycar.jpg",
+    "path": "games/eggycar",
+    "preview": "previews/eggycar.mp4",
+    "featured": true
+  }
+];
+
+  // Popular layout: two small on the left, then three big
+  const POPULAR = [
+    { id: 'slope',        size: 'small', col: 1, row: 1 },
+    { id: 'crazy-cattle', size: 'small', col: 1, row: 2 },
+    { id: 'minecraft',    size: 'big',   col: 2, row: 1 },
+    { id: 'truck',        size: 'big',   col: 3, row: 1 },
+    { id: 'retro',        size: 'big',   col: 4, row: 1 },
+  ];
+
+  const byId = Object.fromEntries(GAMES.map(g => [g.id, g]));
+  const tile = g => `<a class="tile" href="${g.path}" title="${g.title}" data-title="${g.title.toLowerCase()}">
+                       <img src="${g.img}" alt="${g.title}">${g.preview ? `<video src="${g.preview}" muted playsinline preload="none"></video>` : ''}</a>`;
+
+  const pop = document.getElementById('popularGrid');
+  POPULAR.forEach(p => {
+    pop.insertAdjacentHTML('beforeend', tile(byId[p.id]));
+    const el = pop.lastElementChild;
+    if (p.size === 'big') el.classList.add('big');
+    el.style.gridColumn = p.col;
+    el.style.gridRow = p.size === 'big' ? '1 / span 2' : p.row;
+  });
+
+  const all = document.getElementById('all');
+  // Featured game (big tile) goes first on the left, then the rest
+  const ordered = GAMES.filter(g => g.featured).concat(GAMES.filter(g => !g.featured));
+  all.innerHTML = ordered.map(tile).join('');
+  ordered.forEach((g, i) => { if (g.featured) all.children[i].classList.add('feature'); });
+
+  // Search
+  document.getElementById('search').addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+    let shown = 0;
+    all.querySelectorAll('.tile').forEach(t => {
+      const hit = t.dataset.title.includes(q);
+      t.style.display = hit ? '' : 'none';
+      if (hit) shown++;
+    });
+    document.getElementById('empty').style.display = shown ? 'none' : 'block';
+  });
+
+  // Hover preview: play 10 seconds of gameplay, then fade back to the picture
+  const PREVIEW_SECONDS = 10;
+  const canHover = window.matchMedia('(hover: hover)').matches;
+  document.querySelectorAll('.tile').forEach(t => {
+    const v = t.querySelector('video');
+    if (!v || !canHover) return;
+    let timer;
+    const stop = () => {
+      clearTimeout(timer);
+      t.classList.remove('previewing');
+      setTimeout(() => { if (!t.classList.contains('previewing')) v.pause(); }, 300);
+    };
+    t.addEventListener('mouseenter', () => {
+      v.currentTime = 0;
+      const playing = v.play();
+      if (playing) playing.catch(() => {});
+      t.classList.add('previewing');
+      clearTimeout(timer);
+      timer = setTimeout(stop, PREVIEW_SECONDS * 1000);
+    });
+    v.addEventListener('ended', stop);
+    t.addEventListener('mouseleave', stop);
+  });
+
+  // Launch screen: clicking a game shows its icon + Play button first
+  const launcher = document.getElementById('launcher');
+  let launchPath = '';
+  function openLauncher(g) {
+    document.getElementById('launchIcon').src = g.img;
+    document.getElementById('launchIcon').alt = g.title;
+    document.getElementById('launchTitle').textContent = g.title;
+    launchPath = /\.html?$/.test(g.path) ? g.path : g.path.replace(/\/$/, '') + '/index.html';
+    launcher.classList.add('open');
+    launcher.setAttribute('aria-hidden', 'false');
+  }
+  function closeLauncher() {
+    launcher.classList.remove('open');
+    launcher.setAttribute('aria-hidden', 'true');
+  }
+  document.addEventListener('click', e => {
+    const t = e.target.closest('.tile');
+    if (!t) return;
+    e.preventDefault();
+    const g = GAMES.find(x => x.title === t.title);
+    if (g) openLauncher(g);
+  });
+  document.getElementById('playBtn').addEventListener('click', () => { window.location.href = launchPath; });
+  document.getElementById('launcherClose').addEventListener('click', closeLauncher);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLauncher(); });
+
+  // Menu
+  const btn = document.getElementById('menuBtn');
+  const menu = document.getElementById('sideMenu');
+  const overlay = document.getElementById('overlay');
+  function toggleMenu(force) {
+    const open = typeof force === 'boolean' ? force : !menu.classList.contains('open');
+    [btn, menu, overlay].forEach(el => el.classList.toggle('open', open));
+  }
+  btn.addEventListener('click', () => toggleMenu());
+  overlay.addEventListener('click', () => toggleMenu(false));
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => toggleMenu(false)));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleMenu(false); });
+    // Show the signed-in avatar on the account button (also after pressing Back)
+  const ACCOUNT_ICON = document.querySelector('.account-btn').innerHTML;
+  function refreshAccountButton() {
+    const btn = document.querySelector('.account-btn');
+    let p = null;
+    try { p = JSON.parse(localStorage.getItem('seraphx.profile')); } catch (e) {}
+    const src = p && (p.avatarImg || (p.avatar ? 'images/avatars/' + p.avatar + '.png' : null));
+    if (src) {
+      btn.innerHTML = '<img src="' + src + '" alt="">';
+      btn.querySelector('img').onerror = function () { btn.innerHTML = ACCOUNT_ICON; };
+      btn.setAttribute('aria-label', 'Account: ' + p.name);
+    } else {
+      btn.innerHTML = ACCOUNT_ICON;
+      btn.setAttribute('aria-label', 'Account');
+    }
+  }
+  refreshAccountButton();
+  window.addEventListener('pageshow', refreshAccountButton);
+  window.addEventListener('storage', refreshAccountButton);
+</script>
+</body>
+</html>

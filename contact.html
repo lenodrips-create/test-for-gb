@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mail · SERAPHX</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ---------- Top bar (same as home) ---------- */
+  .topbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 70px 36px 0;
+  }
+  .logo { height: 80px; width: auto; display: block; filter: drop-shadow(0 0 14px rgba(255,255,255,.25)); }
+  /* ---------- Account + mail icons (top left, same as home) ---------- */
+  .account-btn, .mail-btn {
+    position: absolute;
+    bottom: 16px;
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    border-radius: 50%;
+    z-index: 30;
+    transition: transform .2s, filter .2s;
+  }
+  .account-btn { left: 36px; }
+  .mail-btn { left: 96px; }
+  .account-btn svg { width: 44px; height: 44px; display: block; }
+  .mail-btn svg { width: 40px; height: 40px; display: block; }
+  .account-btn img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; display: block;
+    padding: 2px; background: url(images/nebula.jpg) center / cover; }
+  .account-btn:hover, .mail-btn:hover { transform: scale(1.08); filter: drop-shadow(0 0 10px rgba(255,255,255,.35)); }
+  .account-btn.current, .mail-btn.current { filter: drop-shadow(0 0 8px rgba(255,255,255,.45)); }
+
+  /* ---------- Animated 3-line menu button + slide-out menu ---------- */
+  .menu-btn {
+    position: absolute; right: 36px; bottom: 16px;
+    width: 48px; height: 48px;
+    border: none; background: #1a1a1a; border-radius: 12px;
+    cursor: pointer; z-index: 30;
+    transition: background .25s, transform .2s;
+  }
+  .menu-btn:hover { background: #2a2a2a; transform: scale(1.06); }
+  .menu-btn span {
+    position: absolute; left: 12px;
+    width: 24px; height: 3px; border-radius: 3px; background: #fff;
+    transition: transform .35s cubic-bezier(.7,-0.4,.3,1.4), opacity .2s, top .35s;
+  }
+  .menu-btn span:nth-child(1) { top: 15px; }
+  .menu-btn span:nth-child(2) { top: 22.5px; }
+  .menu-btn span:nth-child(3) { top: 30px; }
+  .menu-btn.open span:nth-child(1) { top: 22.5px; transform: rotate(45deg); }
+  .menu-btn.open span:nth-child(2) { opacity: 0; transform: translateX(-12px); }
+  .menu-btn.open span:nth-child(3) { top: 22.5px; transform: rotate(-45deg); }
+  .side-menu {
+    position: fixed; top: 0; right: 0;
+    width: 280px; height: 100vh;
+    background: #111; border-left: 1px solid #262626;
+    padding: 150px 32px 32px;
+    transform: translateX(100%);
+    transition: transform .45s cubic-bezier(.77,0,.18,1);
+    z-index: 20;
+  }
+  .side-menu.open { transform: translateX(0); }
+  .side-menu a {
+    display: block; color: #fff; text-decoration: none;
+    font-weight: 700; font-size: 22px; padding: 12px 0;
+    opacity: 0; transform: translateX(24px);
+    transition: opacity .3s, transform .3s, color .2s;
+  }
+  .side-menu a:hover, .side-menu a.current { color: #9a9a9a; }
+  .side-menu.open a { opacity: 1; transform: translateX(0); }
+  .side-menu.open a:nth-child(1) { transition-delay: .15s; }
+  .side-menu.open a:nth-child(2) { transition-delay: .22s; }
+  .side-menu.open a:nth-child(3) { transition-delay: .29s; }
+  .side-menu.open a:nth-child(4) { transition-delay: .36s; }
+  .side-menu.open a:nth-child(5) { transition-delay: .43s; }
+  .side-menu.open a:nth-child(6) { transition-delay: .50s; }
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6);
+    opacity: 0; pointer-events: none; transition: opacity .4s; z-index: 10;
+  }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+
+  /* ---------- Mail ---------- */
+  main { max-width: 820px; margin: 0 auto; padding: 70px 32px 80px; }
+  .mail-head { display: flex; align-items: baseline; justify-content: space-between; margin: 0 4px 18px; }
+  h1 { font-size: 40px; font-weight: 800; }
+  .count { color: #9a9a9a; font-weight: 700; font-size: 14px; }
+
+  .post {
+    background: #0d0d0d;
+    border: 1px solid #222;
+    border-radius: 22px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    transition: border-color .25s, box-shadow .25s;
+  }
+  .post:hover { border-color: #3a3a3a; }
+  .post.open { border-color: rgba(255,255,255,.28); box-shadow: 0 0 26px rgba(255,255,255,.07); }
+
+  .post-top {
+    width: 100%;
+    display: flex; align-items: center; gap: 16px;
+    padding: 20px 24px;
+    background: none; border: none; color: inherit; text-align: left;
+    font-family: inherit; cursor: pointer;
+  }
+  .author-av {
+    width: 54px; height: 54px; flex-shrink: 0;
+    border-radius: 50%;
+    padding: 3px;
+    background: url(images/nebula.jpg) center / cover, #0b0b0f;
+    box-shadow: 0 0 14px rgba(255,255,255,.14);
+  }
+  .author-av img { width: 100%; height: 100%; border-radius: 50%; object-fit: contain; display: block; background: #000; padding: 9px; }
+  .post-meta { flex: 1; min-width: 0; }
+  .post-from { font-size: 13px; font-weight: 700; color: #9a9a9a; }
+  .post-title { font-size: 18px; font-weight: 800; margin-top: 3px; }
+  .post-preview {
+    font-size: 14px; font-weight: 500; color: #8a8a8a; margin-top: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .post.open .post-preview { display: none; }
+  .post-side { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; }
+  .post-date { font-size: 12px; font-weight: 700; color: #777; }
+  .unread-dot { width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px rgba(255,255,255,.8); }
+  .post.read .unread-dot { visibility: hidden; }
+  .chev { width: 18px; height: 18px; color: #777; transition: transform .3s; }
+  .post.open .chev { transform: rotate(180deg); }
+
+  .post-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .4s ease;
+  }
+  .post.open .post-body { grid-template-rows: 1fr; }
+  .post-body > div { overflow: hidden; }
+  .post-content {
+    padding: 4px 24px 26px 94px;
+    font-size: 15px; line-height: 1.75; color: #d6d6d6; font-weight: 500;
+  }
+  .post-content p + p { margin-top: 14px; }
+  .post-content ul { margin: 14px 0 0 18px; }
+  .post-content li { margin: 6px 0; }
+  .post-content b { color: #fff; }
+  .post-sign { margin-top: 18px; font-weight: 800; color: #fff; }
+  .post-content .nebula-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-top: 22px;
+    padding: 11px 26px;
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 999px;
+    background: url(images/nebula.jpg) center / cover no-repeat, #0b0b0f;
+    color: #fff; text-decoration: none;
+    font-weight: 800; font-size: 15px;
+    text-shadow: 0 1px 8px rgba(0,0,0,.6);
+    box-shadow: 0 0 14px 3px rgba(255,255,255,.14);
+    transition: box-shadow .25s, background-position .6s;
+  }
+  .post-content .nebula-btn:hover { box-shadow: 0 0 22px 6px rgba(255,255,255,.24); background-position: 30% center, 0 0; }
+
+  @media (max-width: 480px) {
+    .topbar { padding: 40px 20px 0; }
+    .logo { height: 56px; }
+    .account-btn { left: 20px; bottom: 4px; }
+    .mail-btn { left: 76px; bottom: 4px; }
+    .menu-btn { right: 20px; bottom: 4px; }
+    main { padding: 50px 16px 60px; }
+    h1 { font-size: 30px; }
+    .post-top { padding: 16px; gap: 12px; }
+    .author-av { width: 44px; height: 44px; }
+    .post-title { font-size: 16px; }
+    .post-content { padding: 0 18px 22px 18px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay"></div>
+<nav class="side-menu" id="sideMenu">
+  <a href="index.html">Home</a>
+  <a href="index.html#popular">Popular</a>
+  <a href="index.html#all">All Games</a>
+  <a href="contact.html" class="current">Mail</a>
+  <a href="account.html">Account</a>
+  <a href="ai.html">SERAPHX AI</a>
+</nav>
+
+<header class="topbar">
+  <a class="account-btn" href="account.html" aria-label="Account">
+    <svg viewBox="0 0 48 48" fill="none">
+      <defs><clipPath id="acctClip"><circle cx="24" cy="24" r="19"/></clipPath></defs>
+      <circle cx="24" cy="24" r="21" stroke="currentColor" stroke-width="3.5"/>
+      <circle cx="24" cy="17.5" r="7.5" fill="currentColor"/>
+      <circle cx="24" cy="45" r="16" fill="currentColor" clip-path="url(#acctClip)"/>
+    </svg>
+  </a>
+  <a class="mail-btn current" href="contact.html" aria-label="Mail">
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="10" width="40" height="28" rx="4.5"/>
+      <path d="M5.5 11.5 L20.5 25.2 Q24 28.4 27.5 25.2 L42.5 11.5"/>
+      <path d="M5.5 36.5 L18.6 23.6"/>
+      <path d="M42.5 36.5 L29.4 23.6"/>
+    </svg>
+  </a>
+  <a href="index.html"><img class="logo" src="images/logo-seraphx.png" alt="SERAPHX"></a>
+  <button class="menu-btn" id="menuBtn" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main>
+  <div class="mail-head">
+    <h1>Mail</h1>
+    <span class="count" id="count"></span>
+  </div>
+  <div id="inbox"></div>
+</main>
+
+<script>
+  // ---------- Posts ----------
+  // To add a post, copy one block, paste it at the TOP of the list, and give it a new id.
+  // "body" is HTML, so you can use <p>, <b>, <ul> and <li>.
+  const POSTS = [
+    {
+      id: "multiplayer-in-progress",
+      from: "Gunner",
+      avatar: "images/logo-s.png",
+      date: "2026-11-06",
+      title: "We're working on multiplayer for popular games",
+      preview: "Multiplayer is in the works for the games in our Popular section.",
+      body:
+        "<p>Hey everyone, Gunner here!</p>" +
+        "<p>We're currently working on adding <b>multiplayer</b> to the most popular games on SERAPHX, so you'll be able to play with your friends instead of just by yourself.</p>" +
+        "<p>Here's what we're aiming for:</p>" +
+        "<ul>" +
+        "<li><b>Play together:</b> join the same game as your friends.</li>" +
+        "<li><b>Popular games first:</b> we're starting with the games in the Popular section.</li>" +
+        "<li><b>More to come:</b> once it's working well, we'll add it to more games.</li>" +
+        "</ul>" +
+        "<p>It's still a work in progress, so we don't have a release date yet. Keep an eye on your mail for updates!</p>" +
+        "<div class='post-sign'>— Gunner</div>" +
+        "<a class='nebula-btn' href='index.html#popular'>See popular games</a>"
+    },
+    {
+      id: "home-page-update",
+      from: "Lennon",
+      avatar: "images/logo-s.png",
+      date: "2026-11-06",
+      title: "I built part of the new SERAPHX home page",
+      preview: "Here's what I worked on for the new home page and what's changed.",
+      body:
+        "<p>Hey everyone! I've been working on SERAPHX and I just finished building part of the new <b>home page</b>.</p>" +
+        "<p>Here's what I worked on:</p>" +
+        "<ul>" +
+        "<li><b>New look:</b> a black design with the SERAPHX logo at the top.</li>" +
+        "<li><b>Popular section:</b> big banners for the games everyone plays the most.</li>" +
+        "<li><b>Gameplay previews:</b> hover over a game to watch real footage before you play.</li>" +
+        "<li><b>Play screen:</b> every game opens with its icon and a nebula Play button.</li>" +
+        "<li><b>Accounts:</b> make a profile, pick an avatar, and save your favorite games.</li>" +
+        "</ul>" +
+        "<p>More games and features are on the way. Thanks for playing!</p>" +
+        "<div class='post-sign'>— Lennon</div>" +
+        "<a class='nebula-btn' href='index.html'>Go to the home page</a>"
+    }
+  ];
+
+  // ---------- Read / unread (saved in this browser) ----------
+  const READ_KEY = 'seraphx.mailRead';
+  function getRead() { try { return JSON.parse(localStorage.getItem(READ_KEY)) || []; } catch (e) { return []; } }
+  function markRead(id) {
+    const r = getRead();
+    if (r.indexOf(id) === -1) { r.push(id); try { localStorage.setItem(READ_KEY, JSON.stringify(r)); } catch (e) {} }
+  }
+
+  function formatDate(d) {
+    const parts = d.split('-');
+    const dt = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+    return dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function updateCount() {
+    const read = getRead();
+    const unread = POSTS.filter(function (p) { return read.indexOf(p.id) === -1; }).length;
+    document.getElementById('count').textContent = unread ? unread + ' unread' : 'All caught up';
+  }
+
+  const inbox = document.getElementById('inbox');
+  const read = getRead();
+  POSTS.forEach(function (p) {
+    const post = document.createElement('article');
+    post.className = 'post' + (read.indexOf(p.id) !== -1 ? ' read' : '');
+    post.innerHTML =
+      '<button class="post-top" aria-expanded="false">' +
+        '<div class="author-av"><img src="' + p.avatar + '" alt=""></div>' +
+        '<div class="post-meta">' +
+          '<div class="post-from">' + p.from + '</div>' +
+          '<div class="post-title"></div>' +
+          '<div class="post-preview"></div>' +
+        '</div>' +
+        '<div class="post-side">' +
+          '<span class="post-date">' + formatDate(p.date) + '</span>' +
+          '<span class="unread-dot"></span>' +
+          '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>' +
+        '</div>' +
+      '</button>' +
+      '<div class="post-body"><div><div class="post-content">' + p.body + '</div></div></div>';
+    post.querySelector('.post-title').textContent = p.title;
+    post.querySelector('.post-preview').textContent = p.preview;
+    const top = post.querySelector('.post-top');
+    top.addEventListener('click', function () {
+      const open = post.classList.toggle('open');
+      top.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) { post.classList.add('read'); markRead(p.id); updateCount(); }
+    });
+    inbox.appendChild(post);
+  });
+  updateCount();
+
+  // ---------- Menu ----------
+  const menuBtn = document.getElementById('menuBtn');
+  const sideMenu = document.getElementById('sideMenu');
+  const overlay = document.getElementById('overlay');
+  function toggleMenu(force) {
+    const open = typeof force === 'boolean' ? force : !sideMenu.classList.contains('open');
+    [menuBtn, sideMenu, overlay].forEach(function (el) { el.classList.toggle('open', open); });
+  }
+  menuBtn.addEventListener('click', function () { toggleMenu(); });
+  overlay.addEventListener('click', function () { toggleMenu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') toggleMenu(false); });
+
+  // ---------- Account button shows your avatar when signed in ----------
+  const ACCOUNT_ICON = document.querySelector('.account-btn').innerHTML;
+  function refreshAccountButton() {
+    const btn = document.querySelector('.account-btn');
+    let p = null;
+    try { p = JSON.parse(localStorage.getItem('seraphx.profile')); } catch (e) {}
+    const src = p && (p.avatarImg || (p.avatar ? 'images/avatars/' + p.avatar + '.png' : null));
+    if (src) {
+      btn.innerHTML = '<img src="' + src + '" alt="">';
+      btn.querySelector('img').onerror = function () { btn.innerHTML = ACCOUNT_ICON; };
+    } else {
+      btn.innerHTML = ACCOUNT_ICON;
+    }
+  }
+  refreshAccountButton();
+  window.addEventListener('pageshow', refreshAccountButton);
+  window.addEventListener('storage', refreshAccountButton);
+</script>
+</body>
+</html>
