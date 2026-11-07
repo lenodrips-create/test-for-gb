@@ -8,7 +8,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: #000000 url(images/space-bg.jpg) center center / cover no-repeat fixed;
+    background: #000000 url(images/space-bg.png) center center / cover no-repeat fixed;
     color: #fff;
     font-family: 'Montserrat', sans-serif;
     min-height: 100vh;
@@ -217,7 +217,7 @@
     gap: 14px;
   }
   .grid .tile { aspect-ratio: 1; border-radius: 20px; }
-  .grid .tile.feature { grid-column: -3 / -1; grid-row: 1 / span 2; border-radius: 26px; } /* Among Us: always top-right */
+  .grid .tile.feature { grid-column: 1 / span 2; grid-row: 1 / span 2; border-radius: 26px; } /* Among Us: always top-left */
   .empty { text-align: center; color: #888; font-weight: 700; padding: 30px; display: none; }
 
   @media (max-width: 1050px) {
