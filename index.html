@@ -8,7 +8,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: #000000;
+    background: #000000 url(images/space-bg.jpg) center center / cover no-repeat fixed;
     color: #fff;
     font-family: 'Montserrat', sans-serif;
     min-height: 100vh;
@@ -23,6 +23,7 @@
     max-width: none;
     margin: 0 auto;
     padding: 22px 40px; /* full width: logo + search left, buttons right */
+    background: #000; /* keep the nav bar solid black over the background */
   }
   .logo {
     order: 0;
@@ -153,7 +154,7 @@
   .overlay.open { opacity: 1; pointer-events: auto; }
 
   /* ---------- Content ---------- */
-  main { max-width: none; margin: 0; padding: 24px 14px 70px; }
+  main { max-width: none; margin: 96px 0 0; padding: 0 14px 70px; } /* ~1 inch of space below the nav bar */
   h1 { font-size: 40px; font-weight: 800; margin: 0 0 14px 12px; }
 
   .tile {
