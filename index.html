@@ -259,14 +259,25 @@
     overflow: hidden;
   }
   .player-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
-  .player-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(.55); }
-  .player-overlay {
+  /* loading screen: black background with three animated dots */
+  .player-loading {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(circle at 50% 50%, rgba(0,0,0,.15), rgba(0,0,0,.55));
+    background: #000;
   }
-  .player-frame.playing .player-poster,
-  .player-frame.playing .player-overlay { display: none; }
+  .player-frame.playing .player-loading { display: none; }
+  .dots { display: flex; gap: clamp(16px, 3.4vw, 30px); }
+  .dots span {
+    width: clamp(20px, 3.6vw, 44px); height: clamp(20px, 3.6vw, 44px);
+    border-radius: 50%; background: #fff;
+    animation: dotPulse 1.3s ease-in-out infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: .22s; }
+  .dots span:nth-child(3) { animation-delay: .44s; }
+  @keyframes dotPulse {
+    0%, 100% { transform: scale(.55); opacity: .3; }
+    50%      { transform: scale(1);   opacity: 1; }
+  }
 
   /* bottom bar: title + fullscreen */
   .player-bar {
@@ -325,44 +336,10 @@
     gap: 12px; overflow-x: auto; padding-bottom: 8px;
   }
 
-  /* the Play button, kept but smaller and inside the window */
-  .play-btn {
-    display: flex; align-items: center; gap: 12px;
-    padding: 8px 30px 8px 9px;
-    border: 1px solid rgba(255,255,255,.25);
-    border-radius: 999px;
-    background: url(images/nebula.jpg) center / cover no-repeat, #0b0b0f;
-    color: #fff;
-    font: 800 20px 'Montserrat', sans-serif;
-    letter-spacing: -.3px;
-    text-shadow: 0 1px 8px rgba(0,0,0,.6);
-    cursor: pointer;
-    box-shadow: 0 0 18px 4px rgba(255,255,255,.18), 0 0 50px 10px rgba(180,190,255,.10);
-    animation: glow 2.6s ease-in-out infinite;
-  }
-  .play-btn .play-circle {
-    width: 48px; height: 48px; border-radius: 50%;
-    background: rgba(0,0,0,.45);
-    border: 1px solid rgba(255,255,255,.3);
-    backdrop-filter: blur(3px);
-    display: flex; align-items: center; justify-content: center;
-    transition: transform .25s;
-  }
-  .play-btn .play-circle svg { width: 20px; height: 20px; margin-left: 4px; fill: #fff; }
-  .play-btn:hover { background-position: 30% center, 0 0; }
-  .play-btn:hover .play-circle { transform: scale(1.08); }
-  .play-btn:active { transform: scale(.97); }
-  @keyframes glow {
-    0%, 100% { box-shadow: 0 0 18px 4px rgba(255,255,255,.18), 0 0 50px 10px rgba(180,190,255,.10); }
-    50%      { box-shadow: 0 0 26px 8px rgba(255,255,255,.28), 0 0 70px 16px rgba(180,190,255,.16); }
-  }
-
   @media (max-width: 760px) {
     .player-layout { grid-template-columns: 1fr; padding-top: 64px; }
     .rail-left, .rail-right { display: none; }
     .player-name { white-space: normal; }
-    .play-btn { font-size: 18px; }
-    .play-btn .play-circle { width: 44px; height: 44px; }
   }
     /* ---------- Account avatar + mail button ---------- */
   .account-btn img {
@@ -475,12 +452,8 @@
 
     <div class="player-main">
       <div class="player-frame" id="playerFrame">
-        <img class="player-poster" id="playerPoster" src="" alt="">
-        <div class="player-overlay">
-          <button class="play-btn" id="playBtn">
-            <span class="play-circle"><svg viewBox="0 0 24 24"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5z"/></svg></span>
-            Play game
-          </button>
+        <div class="player-loading" id="playerLoading" aria-label="Loading">
+          <div class="dots"><span></span><span></span><span></span></div>
         </div>
       </div>
       <div class="player-bar">
@@ -639,7 +612,6 @@
   // Windowed player: clicking a game opens it in a center window surrounded by other games
   const launcher   = document.getElementById('launcher');
   const frame      = document.getElementById('playerFrame');
-  const poster     = document.getElementById('playerPoster');
   const playerIc   = document.getElementById('playerIc');
   const playerName = document.getElementById('playerName');
   const railLeft   = document.getElementById('railLeft');
@@ -664,17 +636,18 @@
     frame.classList.add('playing');
   }
 
-  // Load a game into the window (poster + Play first), highlight it in the rails
+  // Load a game: show the loading dots, then reveal the game after 3 seconds
+  let loadTimer = null;
   function loadGame(g) {
     stopGame();
+    clearTimeout(loadTimer);
     launchPath = gamePath(g);
-    poster.src = g.img; poster.alt = g.title;
-    frame.style.backgroundImage = `url("${g.img}")`;
     playerIc.src = g.img; playerIc.alt = g.title;
     playerName.textContent = g.title;
     currentGameId = g.id;
     renderVotes(g.id);
     document.querySelectorAll('.rail-tile').forEach(t => t.classList.toggle('active', t.dataset.id === g.id));
+    loadTimer = setTimeout(startGame, 3000);
   }
 
   // ---- Like / dislike (counts persist per game in this browser) ----
@@ -727,6 +700,7 @@
     document.body.style.overflow = 'hidden';
   }
   function closeLauncher() {
+    clearTimeout(loadTimer);
     stopGame();
     launcher.classList.remove('open');
     launcher.setAttribute('aria-hidden', 'true');
@@ -744,7 +718,6 @@
     if (g) openLauncher(g);
   });
 
-  document.getElementById('playBtn').addEventListener('click', startGame);
   // Fullscreen opens the game on its own in a new tab
   document.getElementById('fsBtn').addEventListener('click', () => { if (launchPath) window.open(launchPath, '_blank', 'noopener'); });
   document.getElementById('launcherClose').addEventListener('click', closeLauncher);
