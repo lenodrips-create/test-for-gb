@@ -16,56 +16,49 @@
 
   /* ---------- Top bar (same as home) ---------- */
   .topbar {
+    --nav-icon: clamp(42px, 4vw, 78px);
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
-    max-width: 1100px;
+    gap: clamp(10px, 1.3vw, 24px);
+    max-width: none;
     margin: 0 auto;
-    padding: 70px 36px 0;
+    padding: clamp(14px, 1.9vw, 36px) clamp(16px, 3vw, 64px);
+    background: #000;
   }
-  .logo { height: 80px; width: auto; display: block; filter: drop-shadow(0 0 14px rgba(255,255,255,.25)); }
-  /* ---------- Account + mail icons (left) and AI robot (right) ---------- */
+  .topbar .logo-link { display: inline-flex; align-items: center; }
+  .logo { height: clamp(44px, 4.6vw, 92px); width: clamp(44px, 4.6vw, 92px); object-fit: cover; border-radius: 12px; display: block; filter: drop-shadow(0 0 12px rgba(255,255,255,.22)); }
   .account-btn, .mail-btn, .ai-btn {
-    position: absolute;
-    bottom: 16px;
-    width: 48px; height: 48px;
+    width: var(--nav-icon); height: var(--nav-icon);
     display: flex; align-items: center; justify-content: center;
-    color: #fff;
-    z-index: 30;
+    color: #fff; z-index: 30;
     transition: transform .2s, filter .2s;
   }
-  .account-btn { left: 36px; border-radius: 50%; }
-  .mail-btn { left: 96px; }
-  .ai-btn { right: 96px; }
-  .account-btn svg { width: 44px; height: 44px; display: block; }
-  .mail-btn svg { width: 40px; height: 40px; display: block; }
-  .ai-btn svg { width: 42px; height: 42px; display: block; }
-  .account-btn img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; display: block;
-    padding: 2px; background: url(images/nebula.jpg) center / cover; }
+  .account-btn { margin-left: auto; border-radius: 50%; }
+  .account-btn svg, .mail-btn svg, .ai-btn svg { width: 92%; height: 92%; display: block; }
+  .account-btn img { width: 92%; height: 92%; border-radius: 50%; object-fit: cover; display: block; padding: 2px; background: url(images/nebula.jpg) center / cover; }
   .account-btn:hover, .mail-btn:hover, .ai-btn:hover { transform: scale(1.08); filter: drop-shadow(0 0 10px rgba(255,255,255,.35)); }
-  .account-btn.current { filter: drop-shadow(0 0 8px rgba(255,255,255,.45)); }
+  .topbar a.current { filter: drop-shadow(0 0 8px rgba(255,255,255,.45)); }
 
-  /* ---------- Animated 3-line menu button + slide-out menu (same as home) ---------- */
   .menu-btn {
-    position: absolute; right: 36px; bottom: 16px;
-    width: 48px; height: 48px;
+    position: relative;
+    width: var(--nav-icon); height: var(--nav-icon);
     border: none; background: #1a1a1a; border-radius: 12px;
     cursor: pointer; z-index: 30;
     transition: background .25s, transform .2s;
   }
   .menu-btn:hover { background: #2a2a2a; transform: scale(1.06); }
   .menu-btn span {
-    position: absolute; left: 12px;
-    width: 24px; height: 3px; border-radius: 3px; background: #fff;
+    position: absolute; left: 25%;
+    width: 50%; height: 6.25%; border-radius: 3px; background: #fff;
     transition: transform .35s cubic-bezier(.7,-0.4,.3,1.4), opacity .2s, top .35s;
   }
-  .menu-btn span:nth-child(1) { top: 15px; }
-  .menu-btn span:nth-child(2) { top: 22.5px; }
-  .menu-btn span:nth-child(3) { top: 30px; }
-  .menu-btn.open span:nth-child(1) { top: 22.5px; transform: rotate(45deg); }
-  .menu-btn.open span:nth-child(2) { opacity: 0; transform: translateX(-12px); }
-  .menu-btn.open span:nth-child(3) { top: 22.5px; transform: rotate(-45deg); }
+  .menu-btn span:nth-child(1) { top: 31.25%; }
+  .menu-btn span:nth-child(2) { top: 46.875%; }
+  .menu-btn span:nth-child(3) { top: 62.5%; }
+  .menu-btn.open span:nth-child(1) { top: 46.875%; transform: rotate(45deg); }
+  .menu-btn.open span:nth-child(2) { opacity: 0; transform: translateX(-50%); }
+  .menu-btn.open span:nth-child(3) { top: 46.875%; transform: rotate(-45deg); }
   .side-menu {
     position: fixed; top: 0; right: 0;
     width: 280px; height: 100vh;
@@ -233,12 +226,6 @@
   .note { margin-top: 44px; font-size: 12px; color: #666; text-align: center; line-height: 1.6; }
 
   @media (max-width: 480px) {
-    .topbar { padding: 40px 20px 0; }
-    .logo { height: 56px; }
-    .account-btn { left: 20px; bottom: 4px; }
-    .mail-btn { left: 76px; bottom: 4px; }
-    .ai-btn { right: 76px; bottom: 4px; }
-    .menu-btn { right: 20px; bottom: 4px; }
     main { padding: 50px 18px 60px; }
     .card { padding: 24px 18px; }
     h1 { font-size: 26px; }
@@ -263,6 +250,7 @@
 </nav>
 
 <header class="topbar">
+  <a class="logo-link" href="index.html"><img class="logo" src="images/seraph-logo.png" alt="SERAPH"></a>
   <a class="account-btn current" href="account.html" aria-label="Account">
     <svg viewBox="0 0 48 48" fill="none">
       <defs><clipPath id="acctClip"><circle cx="24" cy="24" r="19"/></clipPath></defs>
@@ -279,7 +267,6 @@
       <path d="M42.5 36.5 L29.4 23.6"/>
     </svg>
   </a>
-  <a href="index.html"><img class="logo" src="images/logo-seraphx.png" alt="SERAPHX"></a>
   <a class="ai-btn" href="ai.html" aria-label="SERAPHX AI">
     <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
       <!-- antenna -->
