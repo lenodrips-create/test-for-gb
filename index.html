@@ -230,6 +230,7 @@
   .grid .tile.feature     { grid-column: 1 / span 3; grid-row: 1 / span 3; border-radius: 28px; } /* Among Us: biggest, top-left */
   .grid .tile.feature-sub { grid-column: -3 / -1;    grid-row: 1 / span 2; border-radius: 24px; } /* Subway Surfers: a bit smaller, top-right */
   .grid .tile.feature-mid { grid-column: span 2; grid-row: span 2; width: 86%; height: auto; aspect-ratio: 1; align-self: center; justify-self: center; border-radius: 22px; } /* Tunnel Rush: middle, a bit smaller than Subway */
+  .grid .tile.feature-small { grid-column: span 2; grid-row: span 2; width: 70%; height: auto; aspect-ratio: 1; align-self: center; justify-self: center; border-radius: 18px; } /* BitLife: a bit smaller than Tunnel Rush */
   .empty { text-align: center; color: #888; font-weight: 700; padding: 30px; display: none; }
 
   @media (max-width: 1050px) {
@@ -534,6 +535,13 @@
     "preview": "previews/tunnelrush.mp4"
   },
   {
+    "id": "bitlife",
+    "title": "BitLife",
+    "img": "images/bitlife.jpg",
+    "path": "games/bitlife",
+    "preview": "previews/bitlife.mp4"
+  },
+  {
     "id": "minecraft",
     "title": "Minecraft",
     "img": "images/minecraft.jpg",
@@ -612,9 +620,29 @@
 
   const all = document.getElementById('all');
   // One tile per game; Among Us is the largest (left), Subway Surfers a bit smaller (right).
-  all.innerHTML = GAMES.map(g =>
-    tile(g, g.id === 'amongus' ? 'feature' : (g.id === 'subway' ? 'feature-sub' : (g.id === 'tunnelrush' ? 'feature-mid' : '')))
-  ).join('');
+  const sizeClass = id => id === 'amongus' ? 'feature'
+                        : id === 'subway' ? 'feature-sub'
+                        : id === 'tunnelrush' ? 'feature-mid'
+                        : id === 'bitlife' ? 'feature-small' : '';
+  all.innerHTML = GAMES.map(g => tile(g, sizeClass(g.id))).join('');
+
+  // Keep Tunnel Rush centered between Among Us (left) and Subway (right) at any width
+  function placeTunnel() {
+    const tunnel = all.querySelector('.tile.feature-mid');
+    if (!tunnel) return;
+    const cols = getComputedStyle(all).gridTemplateColumns.split(' ').filter(Boolean).length;
+    if (cols >= 7) {
+      const start = 4 + Math.floor((cols - 7) / 2);
+      tunnel.style.gridColumn = start + ' / span 2';
+      tunnel.style.gridRow = '1 / span 2';
+    } else {
+      tunnel.style.gridColumn = '';
+      tunnel.style.gridRow = '';
+    }
+  }
+  placeTunnel();
+  let _tunnelTimer;
+  window.addEventListener('resize', () => { clearTimeout(_tunnelTimer); _tunnelTimer = setTimeout(placeTunnel, 100); });
 
   // Search
   document.getElementById('search').addEventListener('input', e => {
