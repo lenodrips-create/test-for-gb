@@ -163,7 +163,7 @@
   .overlay.open { opacity: 1; pointer-events: auto; }
 
   /* ---------- Content ---------- */
-  main { max-width: none; margin: 96px 0 0; padding: 0 clamp(16px, 5vw, 90px) 70px; } /* ~1 inch below nav; side gutters between the edges and the games */
+  main { max-width: none; margin: 240px 0 0; padding: 0 clamp(16px, 5vw, 90px) 70px; } /* ~2.5 inch below nav; side gutters between the edges and the games */
   h1 { font-size: 40px; font-weight: 800; margin: 0 0 14px 12px; }
 
   .tile {
@@ -229,6 +229,7 @@
   .grid .tile { aspect-ratio: 1; border-radius: 18px; }
   .grid .tile.feature     { grid-column: 1 / span 3; grid-row: 1 / span 3; border-radius: 28px; } /* Among Us: biggest, top-left */
   .grid .tile.feature-sub { grid-column: -3 / -1;    grid-row: 1 / span 2; border-radius: 24px; } /* Subway Surfers: a bit smaller, top-right */
+  .grid .tile.feature-mid { grid-column: span 2; grid-row: span 2; width: 86%; height: auto; aspect-ratio: 1; align-self: center; justify-self: center; border-radius: 22px; } /* Tunnel Rush: middle, a bit smaller than Subway */
   .empty { text-align: center; color: #888; font-weight: 700; padding: 30px; display: none; }
 
   @media (max-width: 1050px) {
@@ -526,6 +527,13 @@
   // Games list: swap "img" for your own banner paths and "path" for each game's page.
   const GAMES = [
   {
+    "id": "tunnelrush",
+    "title": "Tunnel Rush",
+    "img": "images/tunnelrush.jpg",
+    "path": "games/tunnelrush",
+    "preview": "previews/tunnelrush.mp4"
+  },
+  {
     "id": "minecraft",
     "title": "Minecraft",
     "img": "images/minecraft.jpg",
@@ -605,7 +613,7 @@
   const all = document.getElementById('all');
   // One tile per game; Among Us is the largest (left), Subway Surfers a bit smaller (right).
   all.innerHTML = GAMES.map(g =>
-    tile(g, g.id === 'amongus' ? 'feature' : (g.id === 'subway' ? 'feature-sub' : ''))
+    tile(g, g.id === 'amongus' ? 'feature' : (g.id === 'subway' ? 'feature-sub' : (g.id === 'tunnelrush' ? 'feature-mid' : '')))
   ).join('');
 
   // Search
