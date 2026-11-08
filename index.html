@@ -219,27 +219,17 @@
   .search::placeholder { color: #ccc; }
   .search:focus { border-color: #fff; background: #222; }
 
+  /* fixed 6-column layout: the same format at any screen size (tiles just scale) */
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    grid-template-columns: repeat(6, 1fr);
     grid-auto-flow: dense;
-    gap: 14px;
+    gap: clamp(6px, 0.9vw, 14px);
   }
-  .grid .tile { aspect-ratio: 1; border-radius: 18px; }
-  .grid .tile.feature     { grid-column: 1 / span 3;  grid-row: 1 / span 3; border-radius: 28px; } /* Among Us: biggest, top-left */
-  .grid .tile.feature-sub { grid-column: -3 / -1;     grid-row: 1 / span 2; border-radius: 24px; } /* Subway Surfers: a bit smaller, top-right */
+  .grid .tile { aspect-ratio: 1; border-radius: clamp(9px, 1.3vw, 18px); }
+  .grid .tile.feature     { grid-column: 1 / span 3; grid-row: 1 / span 3; border-radius: clamp(14px, 2.1vw, 28px); } /* Among Us: biggest, top-left */
+  .grid .tile.feature-sub { grid-column: -3 / -1;    grid-row: 1 / span 2; border-radius: clamp(12px, 1.8vw, 24px); } /* Subway Surfers: a bit smaller, top-right */
   .empty { text-align: center; color: #888; font-weight: 700; padding: 30px; display: none; }
-
-  @media (max-width: 1050px) {
-    .popular { gap: 8px; }
-    .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-    .grid .tile { border-radius: 14px; }
-    .grid .tile.feature { border-radius: 22px; }
-    .grid .tile.feature-sub { border-radius: 18px; }
-  }
-  @media (max-width: 480px) {
-    .grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
-  }
   @media (max-width: 480px) {
     .topbar { padding: 40px 20px 0; }
     .logo { height: 56px; width: auto; }
